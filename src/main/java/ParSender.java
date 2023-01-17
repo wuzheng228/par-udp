@@ -46,7 +46,7 @@ public class ParSender extends TransportLayer{
                     if (packet.ack == nextPacketToSend) {
                         stopTimer();
                         msgToSend = getMessageToSend();
-                        if (msgToSend != null) {
+                        if (msgToSend == null) {
                             return;
                         }
                         nextPacketToSend = increment(nextPacketToSend);
