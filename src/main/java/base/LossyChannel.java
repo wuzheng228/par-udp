@@ -1,10 +1,9 @@
-/*
+package base;/*
  * Author: Wenbing Zhao
  * Last Modified: 10/4/2009
  * For EEC484 Project
  */
 
-import java.io.*;
 import java.net.*;
 import java.util.*;
 
@@ -49,7 +48,7 @@ public class LossyChannel {
             DatagramPacket p =
                     new DatagramPacket(payload, payload.length,
                             m_IPAddress, m_remoteport);
-            //System.out.println("LossyChannel::send: "+new String(p.getData()));
+            //System.out.println("base.LossyChannel::send: "+new String(p.getData()));
             m_socket.send(p);
         } catch(Exception e) {
             System.out.println("Error sending packet: "+e);

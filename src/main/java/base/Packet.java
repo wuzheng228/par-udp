@@ -1,4 +1,4 @@
-/*
+package base;/*
  * Author: Wenbing Zhao
  * Last Modified: 10/4/2009
  * For EEC484 Project
@@ -56,7 +56,7 @@ public class Packet {
                 payload[i] = receivedData[index+i];
             }
             //String recvd = new String(payload);
-            //System.out.println("Packet::Received: "+recvd);
+            //System.out.println("base.Packet::Received: "+recvd);
             //System.out.println("Got ack, try get another message to send");
         }
     }
@@ -84,14 +84,14 @@ public class Packet {
         data[i++] = intArray[k++];
         data[i++] = intArray[k++];
 
-        //System.out.println("Packet::toBytes: payload len="+length);
+        //System.out.println("base.Packet::toBytes: payload len="+length);
 
         for(int j=0; j<length; j++,i++)
             data[i] = payload[j];
 
         // self test on marshalling
         //System.out.println("----");
-        //Packet test = new Packet(data);
+        //base.Packet test = new base.Packet(data);
         //System.out.println("----");
 
         return data;
