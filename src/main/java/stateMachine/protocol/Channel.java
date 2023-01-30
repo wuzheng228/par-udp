@@ -2,6 +2,7 @@ package stateMachine.protocol;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,6 +28,38 @@ public abstract class Channel {
         this.remotePort = remotePort;
         try {
             remoteAddress = InetAddress.getByName("localhost");;
+            socket = new DatagramSocket(localPort);
+        } catch (Exception e) {
+            throw new RuntimeException("Can not create UDP socket");
+        }
+        readThread = Executors.newSingleThreadExecutor();
+        readThread.execute(new ReadTask());
+    }
+
+    protected Channel(int localPort,String remoteHost ,int remotePort) {
+        this.localPort = localPort;
+        this.remotePort = remotePort;
+        try {
+            remoteAddress = Inet4Address.getByName(remoteHost);;
+            socket = new DatagramSocket(localPort);
+        } catch (Exception e) {
+            throw new RuntimeException("Can not create UDP socket");
+        }
+        readThread = Executors.newSingleThreadExecutor();
+        readThread.execute(new ReadTask());
+    }
+
+    protected Channel(int localPort,int remotePort, String ip) {
+        this.localPort = localPort;
+        this.remotePort = remotePort;
+        try {
+
+            byte[] ips = new byte[4];
+            int i = 0;
+            for (String each : ip.split("\\.")) {
+                ips[i++] = (byte) Integer.parseInt(each);
+            }
+            remoteAddress = Inet4Address.getByAddress(ips);;
             socket = new DatagramSocket(localPort);
         } catch (Exception e) {
             throw new RuntimeException("Can not create UDP socket");
@@ -95,5 +128,9 @@ public abstract class Channel {
                 }
             }
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println((byte)172);
     }
 }

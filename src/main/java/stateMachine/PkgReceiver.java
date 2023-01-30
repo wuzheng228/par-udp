@@ -102,7 +102,7 @@ public class PkgReceiver extends TransportLayer {
     }
 
     public void increment() {
-        if(nextPacketExpected.get() < 1)
+        if(nextPacketExpected.get() == 0)
             nextPacketExpected  = new AtomicInteger(1);
         else // seq number wrap around
             nextPacketExpected = new AtomicInteger(0);

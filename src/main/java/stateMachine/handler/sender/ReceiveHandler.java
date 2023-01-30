@@ -26,6 +26,8 @@ public class ReceiveHandler implements IStateHandle<PkgSender, Event,Boolean> {
                     sender.wakeUpInput();
                 } else {
                     System.out.println("..receive duplicated ack");
+                    // 说明这个包已经发过了 还需等待 ack = 已经发送包seq 的数据包，一直收不到就超时重传
+                    return false;
                 }
             }
             return true;

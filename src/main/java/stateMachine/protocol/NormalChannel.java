@@ -12,6 +12,14 @@ public class NormalChannel extends Channel {
         super(localPort, remotePort);
     }
 
+    public NormalChannel(int localPort, String remoteHost, int remotePort) {
+        super(localPort, remoteHost, remotePort);
+    }
+
+    public NormalChannel(int localPort, int remotePort, String ip) {
+        super(localPort, remotePort, ip);
+    }
+
     public NormalChannel(int localPort) {
         super(localPort);
     }

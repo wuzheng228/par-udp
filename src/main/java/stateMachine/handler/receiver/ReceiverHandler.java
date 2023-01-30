@@ -13,17 +13,25 @@ public class ReceiverHandler implements IStateHandle<PkgReceiver, Event, Boolean
     @Override
     public Boolean handle(PkgReceiver pkgReceiver, Event event) {
         Packet packet = new Packet(pkgReceiver.receivedFromChannel());
+        System.out.println("pkg.seq expected rcv: " +  pkgReceiver.nextPacketExpected.get() + "rcv pkg seq: " + packet.seq);
         if (packet.isValid()) {
             if (pkgReceiver.nextPacketExpected.get() == packet.seq) {
                 deliverMessage(packet);
                 pkgReceiver.increment();
                 // 触发 ACK 事件
                 pkgReceiver.onPositiveAck();
+                return true;
             } else {
                 System.out.println("....receive dulpicated packet");
+                // 说明服务端的ack 丢失了 客户端没有收到，所以服务端需要重新ack
+                deliverMessage(packet);
+                pkgReceiver.increment(); // seq 只有0和1所以 直接调用
+                // 触发 ACK 事件
+                pkgReceiver.onPositiveAck();
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     void deliverMessage(Packet packet) {

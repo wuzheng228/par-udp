@@ -28,7 +28,13 @@ public class PkgSender extends TransportLayer {
     public static final int RECEIVER_PORT = 9888;
     public static final int SENDER_PORT = 9887;
 
-    public static final List<Packet> senderBuffer = new ArrayList<>();
+    public static final List<Packet> senderBuffer;
+
+    static {
+        senderBuffer = new ArrayList<>();
+        senderBuffer.add(new Packet());
+        senderBuffer.add(new Packet());
+    }
 
 
     public AtomicInteger nextSeqToSend = new AtomicInteger(0);
@@ -75,7 +81,7 @@ public class PkgSender extends TransportLayer {
 
                 SopProcess.Builder.getInstance()
                         .from(State.WAIT_FOR_ACK)
-                        .to(State.WAIT_FOR_INPUT)
+                        .to(State.WAIT_FOR_ACK)
                         .event(Event.TIME_OUT)
                         .handle(new InputHandler())
                         .build(), // 开启定时器 处理超时事件
@@ -157,7 +163,7 @@ public class PkgSender extends TransportLayer {
     }
 
     public void increment() {
-        if(nextSeqToSend.get() < 1)
+        if(nextSeqToSend.get() == 0)
             nextSeqToSend  = new AtomicInteger(1);
         else // seq number wrap around
             nextSeqToSend = new AtomicInteger(0);
@@ -195,7 +201,6 @@ public class PkgSender extends TransportLayer {
                 synchronized (inputLock) {
                     waitForTrigger();
                     messageToSend = getMessageToSend();
-                    sender.stopInput();
                     sender.onInput();
                 }
             }
@@ -214,7 +219,13 @@ public class PkgSender extends TransportLayer {
 
     public static void main(String[] args) {
 //        LossyChannel channel = new LossyChannel(SENDER_PORT, RECEIVER_PORT);
-        NormalChannel channel = new NormalChannel(SENDER_PORT, RECEIVER_PORT);
+        if (args.length < 1) {
+            throw new IllegalArgumentException("请输入远程服务host");
+        }
+
+        String remoteHost = args[0];
+
+        NormalChannel channel = new NormalChannel(SENDER_PORT, RECEIVER_PORT, remoteHost);
         PkgSender pkgSender = new PkgSender(channel);
         channel.setTransportLayer(pkgSender);
         pkgSender.run();
