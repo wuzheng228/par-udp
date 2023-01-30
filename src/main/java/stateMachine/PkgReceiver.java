@@ -5,6 +5,7 @@ import stateMachine.handler.receiver.AckHandler;
 import stateMachine.handler.receiver.InitHandler;
 import stateMachine.handler.receiver.ReceiverHandler;
 import stateMachine.protocol.Channel;
+import stateMachine.protocol.LossyChannel;
 import stateMachine.protocol.NormalChannel;
 import stateMachine.protocol.TransportLayer;
 import stateMachine.state.Event;
@@ -110,9 +111,10 @@ public class PkgReceiver extends TransportLayer {
 
 
     public static void main(String[] args) {
-        NormalChannel normalChannel = new NormalChannel(LOCAL_PORT);
-        PkgReceiver pkgReceiver = new PkgReceiver(normalChannel);
-        normalChannel.setTransportLayer(pkgReceiver);
+        LossyChannel channel = new LossyChannel(LOCAL_PORT);
+//        NormalChannel channel = new NormalChannel(LOCAL_PORT);
+        PkgReceiver pkgReceiver = new PkgReceiver(channel);
+        channel.setTransportLayer(pkgReceiver);
         try {
             pkgReceiver.run();
         } finally {

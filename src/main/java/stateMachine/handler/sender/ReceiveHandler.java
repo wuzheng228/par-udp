@@ -18,7 +18,7 @@ public class ReceiveHandler implements IStateHandle<PkgSender, Event,Boolean> {
 //        sender.executorService.execute(()->{
 
             Packet packet = new Packet(sender.receivedFromChannel());
-
+            System.out.println("receive packet from server packet.ack = " + packet.ack + " sender next to send seq is: " + sender.nextSeqToSend.get());
             if (packet.isValid()) {
                 if (packet.ack == (byte) sender.nextSeqToSend.get()) {
                     sender.stopTimer();

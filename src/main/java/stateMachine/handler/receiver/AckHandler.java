@@ -15,6 +15,8 @@ public class AckHandler implements IStateHandle<PkgReceiver, Event,Boolean> {
         Packet packetToSend = new Packet();
         packetToSend.ack =(byte) (1 - pkgReceiver.nextPacketExpected.get());
         packetToSend.length = 0;
+
+        System.out.println("receicver the packet ack to the sender ack is: " + packetToSend.ack);
         pkgReceiver.sendToChannel(packetToSend);
         return true;
     }

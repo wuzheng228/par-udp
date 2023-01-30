@@ -35,7 +35,7 @@ public class InputHandler implements IStateHandle<PkgSender, Event, Boolean> {
        if (event == Event.TIME_OUT) {
            System.out.println("Time out not receive ack try to resend pkg, pkg.seq is: " + sender.nextSeqToSend.get());
            sender.sendToChannel(PkgSender.senderBuffer.get(sender.nextSeqToSend.get()));
-//           sender.startTimer();
+           sender.startTimer();
            return true;
        }
        return false;

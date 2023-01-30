@@ -21,8 +21,10 @@ public class LossyChannel extends Channel {
     void send(byte[] data) {
         Random rand = new Random();
         int randnum = rand.nextInt(10); // range 0-10
-        if(randnum < 3)
+        if(randnum < 3) {
+            System.out.println("net error occur pkg loss");
             return; // simulate a loss
+        }
 
         try {
             DatagramPacket packet = new DatagramPacket(data, data.length, remoteAddress, remotePort);
