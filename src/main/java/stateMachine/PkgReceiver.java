@@ -111,8 +111,8 @@ public class PkgReceiver extends TransportLayer {
 
 
     public static void main(String[] args) {
-        LossyChannel channel = new LossyChannel(LOCAL_PORT);
-//        NormalChannel channel = new NormalChannel(LOCAL_PORT);
+//        LossyChannel channel = new LossyChannel(LOCAL_PORT);
+        NormalChannel channel = new NormalChannel(LOCAL_PORT);
         PkgReceiver pkgReceiver = new PkgReceiver(channel);
         channel.setTransportLayer(pkgReceiver);
         try {

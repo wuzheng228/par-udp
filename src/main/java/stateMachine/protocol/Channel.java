@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
  */
 public abstract class Channel {
 
+    public static final Object addressLock = new Object();
     protected InetAddress remoteAddress; // 远程服务器地址
     public DatagramSocket socket = null; // 绑定在本地端口的socket对象
     protected int localPort; // 本地接收数据的端口
@@ -94,10 +95,12 @@ public abstract class Channel {
     }
 
     public void setRemoteAddressAndPort(InetAddress address, int port) {
-        remoteAddress = address;
-        remotePort = port;
-        System.out.println("remoteAddress: " + remoteAddress);
-        System.out.println("remotePort: " + remotePort);
+        synchronized (addressLock) {
+            remoteAddress = address;
+            remotePort = port;
+            System.out.println("remoteAddress: " + remoteAddress);
+            System.out.println("remotePort: " + remotePort);
+        }
     }
 
     public class ReadTask implements Runnable {
@@ -109,7 +112,10 @@ public abstract class Channel {
             while (true) {
                 DatagramPacket datagramPacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
                 try {
+                    // 经过测试UDP发送数据到远端 服务器 客户端的 ip：port会发生改变
                     socket.receive(datagramPacket);
+                    System.out.println("Channel read thread pkg's remoteAddress is " + datagramPacket.getAddress() + " port is " + datagramPacket.getPort());
+                    setRemoteAddressAndPort(datagramPacket.getAddress(), datagramPacket.getPort());
                 } catch (Exception e) {
                     System.out.println("Cannot receive from socket: " + e);
                     throw new RuntimeException("Cannot receive from socket: " + e);
@@ -119,9 +125,6 @@ public abstract class Channel {
                     if (receiveBuffer[Packet.PREAMBLE.length + 2] == (byte) 1) {
                         cnt++;
                         transportLayer.onPackageSYN();
-                        if (remoteAddress == null) {
-                            setRemoteAddressAndPort(datagramPacket.getAddress(), datagramPacket.getPort());
-                        }
                         continue;
                     }
                     transportLayer.onPackageArrival();

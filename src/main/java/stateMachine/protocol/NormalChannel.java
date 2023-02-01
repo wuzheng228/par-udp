@@ -27,7 +27,11 @@ public class NormalChannel extends Channel {
     @Override
     void send(byte[] data) {
         try {
-            DatagramPacket packet = new DatagramPacket(data, data.length, remoteAddress, remotePort);
+            System.out.println("remoteAddress："+remoteAddress + " " + remotePort);
+            DatagramPacket packet;
+            synchronized (addressLock) {
+                packet = new DatagramPacket(data, data.length, remoteAddress, remotePort);
+            }
             socket.send(packet);
         } catch (Exception e) {
             System.out.println("Error sending packet: "+e);

@@ -27,7 +27,10 @@ public class LossyChannel extends Channel {
         }
 
         try {
-            DatagramPacket packet = new DatagramPacket(data, data.length, remoteAddress, remotePort);
+            DatagramPacket packet;
+            synchronized (addressLock) {
+                packet = new DatagramPacket(data, data.length, remoteAddress, remotePort);
+            }
             socket.send(packet);
         } catch(Exception e) {
             System.out.println("Error sending packet: "+e);
