@@ -14,11 +14,12 @@ public class Packet {
             'E', 'E', '4', '8', '4', 'F', 'A'
     };
     public static final int MAX_PACKET_PALOAD = 1024;
-    public static final int MAX_PACKET_SIZE = MAX_PACKET_PALOAD + PREAMBLE.length + 7;
+    public static final int MAX_PACKET_SIZE = MAX_PACKET_PALOAD + PREAMBLE.length + 8;
 
     public byte seq;
     public byte ack;
     public byte syn;
+    public byte fin;
     public int length;
     public byte[] payload = new byte[MAX_PACKET_PALOAD];
 
@@ -28,6 +29,7 @@ public class Packet {
         seq = -1;
         ack = -1;
         syn = -1;
+        fin = -1;
         length = 0;
     }
 
@@ -42,6 +44,7 @@ public class Packet {
             seq = data[index++];
             ack = data[index++];
             syn = data[index++];
+            fin = data[index++];
 
             byte[] intArray = {data[index], data[index + 1], data[index + 2], data[index + 3]};
             index += 4;
@@ -56,7 +59,7 @@ public class Packet {
     }
 
     public byte[] toBytes() {
-        int totalLen = length + 3 + 4 + PREAMBLE.length;
+        int totalLen = length + 4 + 4 + PREAMBLE.length;
         byte[] data = new byte[totalLen];
         // 填充首部
         int i = 0;
@@ -67,6 +70,7 @@ public class Packet {
         data[i++] = seq;
         data[i++] = ack;
         data[i++] = syn;
+        data[i++] = fin;
 
         byte[] intArray = new byte[4];
         ByteArrayUtils.writeInt(intArray, length);

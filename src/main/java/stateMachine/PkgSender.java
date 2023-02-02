@@ -219,13 +219,13 @@ public class PkgSender extends TransportLayer {
 
     public static void main(String[] args) {
 //        LossyChannel channel = new LossyChannel(SENDER_PORT, RECEIVER_PORT);
-        if (args.length < 1) {
-            throw new IllegalArgumentException("请输入远程服务host");
-        }
+//        if (args.length < 1) {
+//            throw new IllegalArgumentException("请输入远程服务host");
+//        }
+//
+//        String remoteHost = args[0];
 
-        String remoteHost = args[0];
-
-        NormalChannel channel = new NormalChannel(SENDER_PORT, RECEIVER_PORT, remoteHost);
+        NormalChannel channel = new NormalChannel(SENDER_PORT, RECEIVER_PORT);
         PkgSender pkgSender = new PkgSender(channel);
         channel.setTransportLayer(pkgSender);
         pkgSender.run();
