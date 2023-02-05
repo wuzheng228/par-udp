@@ -10,5 +10,10 @@ public enum State {
     WAIT_FOR_INPUT,
     WAIT_FOR_PACKET,
     POSITIVE_ACK,
+
+    FINISH_WAIT,
+
+    FINISH,
+
     UNKNOW
 }

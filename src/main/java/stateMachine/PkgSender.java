@@ -1,18 +1,16 @@
 package stateMachine;
 
 import stateMachine.handler.IStateHandle;
-import stateMachine.handler.sender.InitHandler;
-import stateMachine.handler.sender.InputHandler;
-import stateMachine.handler.sender.PkgSendHandler;
-import stateMachine.handler.sender.ReceiveHandler;
+import stateMachine.handler.sender.*;
 import stateMachine.protocol.*;
 import stateMachine.state.Event;
 import stateMachine.state.SopExec;
 import stateMachine.state.SopProcess;
 import stateMachine.state.State;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,9 +39,10 @@ public class PkgSender extends TransportLayer {
 
     public static final Object inputLock = new Object();
     public static byte[] messageToSend;
+    public static File transFile;
+    public FileInputStream fileInputStream;
 
-
-    public InputTask inputThread = new InputTask(this);
+    public InputTask inputThread = new InputTask("input",this);
 
     public PkgSender(Channel channel) {
         super(channel);
@@ -56,13 +55,13 @@ public class PkgSender extends TransportLayer {
                         .from(State.INIT)
                         .to(State.INIT)
                         .event(Event.INIT)
-                        .handle(new InitHandler()).build(), // 发送SYN 数据包
+                        .handle(new InitHandler()).build(), //发送SYN数据包，附带文件元数据信息
 
                 SopProcess.Builder.getInstance()
                         .from(State.INIT)
                         .to(State.INIT)
                         .event(Event.TIME_OUT)
-                        .handle(new InitHandler()).build(), // 处理超时
+                        .handle(new InitHandler()).build(), // 超时重试
 
                 SopProcess.Builder.getInstance()
                         .from(State.INIT)
@@ -77,6 +76,27 @@ public class PkgSender extends TransportLayer {
                         .to(State.WAIT_FOR_ACK)
                         .event(Event.INPUT)
                         .handle(new InputHandler())
+                        .build(), // 处理输入 发送message
+
+                SopProcess.Builder.getInstance()
+                        .from(State.WAIT_FOR_INPUT)
+                        .to(State.FINISH_WAIT)
+                        .event(Event.FILE_READ_END)
+                        .handle(new FinishHandler())
+                        .build(), // 处理输入 发送message
+
+                SopProcess.Builder.getInstance()
+                        .from(State.FINISH_WAIT)
+                        .to(State.FINISH)
+                        .event(Event.RECEIVE_PKG)
+                        .handle(new FinishHandler())
+                        .build(), // 处理输入 发送message
+
+                SopProcess.Builder.getInstance()
+                        .from(State.FINISH_WAIT)
+                        .to(State.FINISH_WAIT)
+                        .event(Event.TIME_OUT)
+                        .handle(new FinishHandler())
                         .build(), // 处理输入 发送message
 
                 SopProcess.Builder.getInstance()
@@ -114,6 +134,11 @@ public class PkgSender extends TransportLayer {
         while (true) {
             // 现态
             System.out.println("当前状态: " + getCurrentState().name());
+
+            if (getCurrentState() == State.FINISH) {
+                release();
+                break;
+            }
 
             if (getCurrentState().name().equals("UNKNOW")) {
                 release();
@@ -169,6 +194,14 @@ public class PkgSender extends TransportLayer {
             nextSeqToSend = new AtomicInteger(0);
     }
 
+    public void closeFileInputSteam() {
+        try {
+            fileInputStream.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static class InputTask extends Thread {
 
         PkgSender sender;
@@ -176,6 +209,11 @@ public class PkgSender extends TransportLayer {
 
         public InputTask(PkgSender transportLayer) {
             this.sender = transportLayer;
+        }
+
+        public InputTask(String name, PkgSender sender) {
+            super(name);
+            this.sender = sender;
         }
 
         byte[] getMessageToSend() {
@@ -200,9 +238,50 @@ public class PkgSender extends TransportLayer {
             while (true) {
                 synchronized (inputLock) {
                     waitForTrigger();
-                    messageToSend = getMessageToSend();
-                    sender.onInput();
+                    if (Thread.currentThread().isInterrupted()) {
+                        System.out.println("interuped");
+                        break;
+                    }
+                    messageToSend = getFileDataToSend();
+                    if (messageToSend.length != 0) {
+                        sender.onInput();
+                    } else {
+                        sender.onFileReadEnd();
+                    }
+
                 }
+            }
+        }
+
+        byte[] getFileMetaDataToSend() {
+            try {
+                sender.fileInputStream = new FileInputStream(PkgSender.transFile);
+                FileChannel fileChannel = sender.fileInputStream.getChannel();
+                long size = fileChannel.size();
+                String payload = PkgSender.transFile.getName() + ";" + size;
+                return payload.getBytes(StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                throw new RuntimeException("文件读取异常！");
+            }
+        }
+
+        byte[] getFileDataToSend() {
+            try {
+                byte[] bytes;
+                int available = sender.fileInputStream.available();
+                if (available >= 1024) {
+                    bytes = new byte[1024];
+                    sender.fileInputStream.read(bytes);
+                } else if (available > 0) {
+                    bytes = new byte[available];
+                    sender.fileInputStream.read(bytes);
+                } else {
+                    sender.onFileReadEnd();
+                    bytes = new byte[0];
+                }
+                return bytes;
+            } catch (Exception e) {
+                throw new RuntimeException("文件读取异常！");
             }
         }
 
@@ -210,7 +289,10 @@ public class PkgSender extends TransportLayer {
             while (!canInput) {
                 try {
                     inputLock.wait();
-                } catch (Exception e) {}
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
             }
             canInput = false;
         }
@@ -219,13 +301,14 @@ public class PkgSender extends TransportLayer {
 
     public static void main(String[] args) {
 //        LossyChannel channel = new LossyChannel(SENDER_PORT, RECEIVER_PORT);
-//        if (args.length < 1) {
-//            throw new IllegalArgumentException("请输入远程服务host");
-//        }
-//
-//        String remoteHost = args[0];
+        if (args.length < 1) {
+            throw new IllegalArgumentException("请输入远程服务host");
+        }
 
-        NormalChannel channel = new NormalChannel(SENDER_PORT, RECEIVER_PORT);
+        String remoteHost = args[0];
+        transFile = new File(args[1]);
+
+        NormalChannel channel = new NormalChannel(SENDER_PORT, remoteHost, RECEIVER_PORT);
         PkgSender pkgSender = new PkgSender(channel);
         channel.setTransportLayer(pkgSender);
         pkgSender.run();

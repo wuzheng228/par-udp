@@ -42,6 +42,7 @@ public abstract class TransportLayer {
         if (timer != null) {
             timer.cancel();
         }
+
         channel.close();
     }
 
@@ -182,6 +183,18 @@ public abstract class TransportLayer {
      */
     public synchronized Event getCurrentEvent() {
         return  currentEvent;
+    }
+
+    public synchronized void onFileReadEnd() {
+        wakeUp = true;
+        currentEvent = Event.FILE_READ_END;
+        notifyAll();
+    }
+
+    public synchronized void onPackageFIN() {
+        wakeUp = true;
+        currentEvent = Event.RECEIVE_PKG_FIN;
+        notifyAll();
     }
 
     public class SendTimerTask extends TimerTask {

@@ -89,8 +89,10 @@ public abstract class Channel {
 
     public void close() {
         if (socket != null) {
-            readThread.shutdownNow();
+            System.out.println("channel read thread shutdown");
             socket.close();
+            readThread.shutdownNow();
+            System.out.println(readThread.isShutdown());
         }
     }
 
@@ -105,11 +107,10 @@ public abstract class Channel {
 
     public class ReadTask implements Runnable {
 
-        private int cnt =0;
-
         @Override
         public void run() {
             while (true) {
+                System.out.println(Thread.currentThread().getName());
                 DatagramPacket datagramPacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
                 try {
                     // 经过测试UDP发送数据到远端 服务器 客户端的 ip：port会发生改变
@@ -118,13 +119,16 @@ public abstract class Channel {
                     setRemoteAddressAndPort(datagramPacket.getAddress(), datagramPacket.getPort());
                 } catch (Exception e) {
                     System.out.println("Cannot receive from socket: " + e);
-                    throw new RuntimeException("Cannot receive from socket: " + e);
+                    break;
                 }
 
                 if (transportLayer != null) {
-                    if (receiveBuffer[Packet.PREAMBLE.length + 2] == (byte) 1) {
-                        cnt++;
+                    if (receiveBuffer[Packet.PREAMBLE.length + 2] == (byte) 1 || receiveBuffer[Packet.PREAMBLE.length + 2] == (byte) 2) {
                         transportLayer.onPackageSYN();
+                        continue;
+                    }
+                    if (receiveBuffer[Packet.PREAMBLE.length + 3] == (byte) 1) {
+                        transportLayer.onPackageFIN();
                         continue;
                     }
                     transportLayer.onPackageArrival();

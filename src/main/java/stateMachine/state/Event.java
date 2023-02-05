@@ -12,5 +12,7 @@ public enum Event {
     RECEIVE_PKG_SYN_FIN,
     INPUT,
     POCITIVE_ACK,
+    FILE_READ_END,
+    RECEIVE_PKG_FIN,
     WAIT_FOR_INPUT
 }

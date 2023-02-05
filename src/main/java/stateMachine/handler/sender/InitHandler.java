@@ -7,7 +7,10 @@ import stateMachine.protocol.TransportLayer;
 import stateMachine.state.Event;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -26,13 +29,21 @@ public class InitHandler implements IStateHandle<PkgSender, Event, Boolean> {
             Packet packet = new Packet();
             packet.setSeq((byte) sender.nextSeqToSend.get());
             packet.setSyn((byte)1);
-            byte[] msgToSend = "SYN".getBytes(StandardCharsets.UTF_8);
-            packet.payload = msgToSend;
-            packet.length = msgToSend.length;
 
-
-            sender.startTimer();
-            sender.sendToChannel(packet);
+            try {
+                sender.fileInputStream = new FileInputStream(PkgSender.transFile);
+                FileChannel fileChannel = sender.fileInputStream.getChannel();
+                long size = fileChannel.size();
+                String payload = "SYN" + ";" +PkgSender.transFile.getName() + ";" + size;
+                byte[] msgToSend = payload.getBytes(StandardCharsets.UTF_8);
+                packet.payload = msgToSend;
+                packet.length = msgToSend.length;
+                sender.startTimer();
+                sender.sendToChannel(packet);
+            } catch (Exception e) {
+                System.out.println("文件输入流异常" + e);
+                return  false;
+            }
             return true;
         }
 
@@ -46,7 +57,7 @@ public class InitHandler implements IStateHandle<PkgSender, Event, Boolean> {
 
                 Packet ack = new Packet();
                 ack.seq = (byte) 1;
-                ack.syn = 1;
+                ack.syn = 2;
                 ack.payload = "SYN_FIN".getBytes(StandardCharsets.UTF_8);
                 ack.length = "SYN_FIN".getBytes(StandardCharsets.UTF_8).length;
 
@@ -60,15 +71,21 @@ public class InitHandler implements IStateHandle<PkgSender, Event, Boolean> {
 
         if (currentEvent == Event.TIME_OUT) {
             Packet packet = new Packet();
-            packet.setSeq((byte) sender.nextSeqToSend.get());
-            packet.setSyn((byte)1);
-            byte[] msgToSend = "SYN".getBytes(StandardCharsets.UTF_8);
-            packet.payload = msgToSend;
-            packet.length = msgToSend.length;
+            try {
+                sender.fileInputStream = new FileInputStream(PkgSender.transFile);
+                FileChannel fileChannel = sender.fileInputStream.getChannel();
+                long size = fileChannel.size();
+                String payload = "SYN" + ";" +PkgSender.transFile.getName() + ";" + size;
+                byte[] msgToSend = payload.getBytes(StandardCharsets.UTF_8);
+                packet.payload = msgToSend;
+                packet.length = msgToSend.length;
+                sender.sendToChannel(packet);
+                sender.startTimer();
+                return true;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
-            sender.sendToChannel(packet);
-            sender.startTimer();
-            return true;
         }
         return false;
 

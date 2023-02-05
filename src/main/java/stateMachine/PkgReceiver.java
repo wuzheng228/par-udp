@@ -5,14 +5,18 @@ import stateMachine.handler.receiver.AckHandler;
 import stateMachine.handler.receiver.InitHandler;
 import stateMachine.handler.receiver.ReceiverHandler;
 import stateMachine.protocol.Channel;
-import stateMachine.protocol.LossyChannel;
 import stateMachine.protocol.NormalChannel;
+import stateMachine.protocol.Packet;
 import stateMachine.protocol.TransportLayer;
 import stateMachine.state.Event;
 import stateMachine.state.SopExec;
 import stateMachine.state.SopProcess;
 import stateMachine.state.State;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,6 +31,11 @@ public class PkgReceiver extends TransportLayer {
     public static final int REMOTE_PORT = 9887;
 
     public AtomicInteger nextPacketExpected = new AtomicInteger(0);
+
+    public FileOutputStream fileOutputStream;
+
+    public Long fileLength;
+    public int fileReadOffset = 0;
 
     public PkgReceiver(Channel channel) {
         super(channel);
@@ -51,6 +60,13 @@ public class PkgReceiver extends TransportLayer {
                         .from(State.WAIT_FOR_PACKET)
                         .to(State.POSITIVE_ACK)
                         .event(Event.RECEIVE_PKG)
+                        .handle(new ReceiverHandler())
+                        .build(),
+
+                SopProcess.Builder.getInstance()
+                        .from(State.WAIT_FOR_PACKET)
+                        .to(State.INIT)
+                        .event(Event.RECEIVE_PKG_FIN)
                         .handle(new ReceiverHandler())
                         .build(),
 
@@ -109,6 +125,40 @@ public class PkgReceiver extends TransportLayer {
             nextPacketExpected = new AtomicInteger(0);
     }
 
+    public void saveToFile(Packet packet) {
+        byte[] payload = new byte[packet.length];
+        for(int i=0; i<payload.length; i++)
+            payload[i] = packet.payload[i];
+        try {
+            fileOutputStream.getChannel().write(ByteBuffer.wrap(payload), fileReadOffset);
+            incrementFileReadOffset(payload.length);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void resetFileReadOffset() {
+        this.fileReadOffset = 0;
+    }
+
+    public void incrementFileReadOffset(int add) {
+        this.fileReadOffset += add;
+    }
+
+    public void decrementFileReadOffset(int sub) {
+        this.fileReadOffset -= sub;
+    }
+
+    public void setFileOutputStream(String file) {
+        try {
+            this.fileOutputStream = new FileOutputStream(file);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public FileOutputStream getFileOutputStream() {
+        return fileOutputStream;
+    }
 
     public static void main(String[] args) {
 //        LossyChannel channel = new LossyChannel(LOCAL_PORT);

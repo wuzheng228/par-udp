@@ -112,6 +112,11 @@ public class Packet {
         return valid;
     }
 
+
+    public String toString() {
+        return "pkg seq: " + seq + " ack: " + ack + " syn: " + syn + "fin " + fin;
+    }
+
     public static void main(String[] args) {
         Packet packet = new Packet();
         byte[] bytes = packet.toBytes();
