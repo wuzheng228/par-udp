@@ -1,4 +1,4 @@
-package stateMachine.protocol;
+package rdt.stop_wait_protocol.protocol;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;

@@ -1,6 +1,6 @@
-package stateMachine.protocol;
+package rdt.stop_wait_protocol.protocol;
 
-import base.ByteArrayUtils;
+import rdt.common.util.ByteArrayUtils;
 import lombok.Data;
 
 /**

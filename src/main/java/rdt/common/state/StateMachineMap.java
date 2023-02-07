@@ -1,4 +1,7 @@
-package stateMachine.state;
+package rdt.common.state;
+
+import rdt.stop_wait_protocol.protocol.Event;
+import rdt.stop_wait_protocol.protocol.State;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -4,6 +4,8 @@ package base;/*
  * For EEC484 Project
  */
 
+import rdt.common.util.ByteArrayUtils;
+
 // This class describes the packet structure used by the par protocol
 public class Packet {
     public static final byte[] PREAMBLE =

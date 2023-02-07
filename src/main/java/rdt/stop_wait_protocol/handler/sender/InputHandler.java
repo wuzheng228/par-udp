@@ -1,12 +1,10 @@
-package stateMachine.handler.sender;
+package rdt.stop_wait_protocol.handler.sender;
 
-import stateMachine.PkgSender;
-import stateMachine.handler.IStateHandle;
-import stateMachine.protocol.Packet;
-import stateMachine.state.Event;
+import rdt.stop_wait_protocol.PkgSender;
+import rdt.stop_wait_protocol.handler.IStateHandle;
+import rdt.stop_wait_protocol.protocol.Packet;
+import rdt.stop_wait_protocol.protocol.Event;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 /**

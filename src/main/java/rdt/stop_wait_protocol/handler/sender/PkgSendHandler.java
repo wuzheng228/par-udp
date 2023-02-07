@@ -1,8 +1,8 @@
-package stateMachine.handler.sender;
+package rdt.stop_wait_protocol.handler.sender;
 
-import stateMachine.PkgSender;
-import stateMachine.handler.IStateHandle;
-import stateMachine.state.Event;
+import rdt.stop_wait_protocol.PkgSender;
+import rdt.stop_wait_protocol.handler.IStateHandle;
+import rdt.stop_wait_protocol.protocol.Event;
 
 /**
  * @Author by wuzheng.warms

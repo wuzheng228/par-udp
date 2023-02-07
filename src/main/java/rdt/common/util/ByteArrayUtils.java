@@ -1,4 +1,4 @@
-package base;/*
+package rdt.common.util;/*
  * Code taken from
  * http://www.experts-exchange.com/Programming/Programming_Languages/
  *      Java/Q_20273040.html

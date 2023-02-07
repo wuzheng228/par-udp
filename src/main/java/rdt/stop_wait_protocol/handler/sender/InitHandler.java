@@ -1,19 +1,13 @@
-package stateMachine.handler.sender;
+package rdt.stop_wait_protocol.handler.sender;
 
-import stateMachine.PkgSender;
-import stateMachine.handler.IStateHandle;
-import stateMachine.protocol.Packet;
-import stateMachine.protocol.TransportLayer;
-import stateMachine.state.Event;
+import rdt.stop_wait_protocol.PkgSender;
+import rdt.stop_wait_protocol.handler.IStateHandle;
+import rdt.stop_wait_protocol.protocol.Packet;
+import rdt.stop_wait_protocol.protocol.Event;
 
-import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStreamReader;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 
 /**
  * INIT + INIT | SYN_ACK | SYN_TIME_OUT

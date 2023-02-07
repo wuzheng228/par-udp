@@ -1,15 +1,11 @@
-package stateMachine.protocol;
+package rdt.stop_wait_protocol.protocol;
 
-import stateMachine.state.Event;
-import stateMachine.state.State;
-import stateMachine.state.StateMachineMap;
+import rdt.common.state.StateMachineMap;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * @Author by wuzheng.warms
@@ -17,7 +13,7 @@ import java.util.concurrent.ScheduledExecutorService;
  */
 public abstract class TransportLayer {
 
-    private static final int MAX_SEQ = 1;
+    public static final int MAX_SEQ = 1;
     private static final int TIME_OUT = 1000;
 
     // 包发送超时定时器, 用于超时重发
@@ -56,25 +52,10 @@ public abstract class TransportLayer {
      * 通过网络层发送数据包
      * @param packet
      */
-//    public void sendToChannelAndTriggerEvent(Packet packet) {
-//        channel.send(packet.toBytes());
-//        onPackageSend();
-//    }
-
-    /**
-     * 通过网络层发送数据包
-     * @param packet
-     */
     public void sendToChannel(Packet packet) {
         channel.send(packet.toBytes());
     }
 
-
-//    private synchronized void onPackageSend() {
-//        wakeUp = true;
-//        currentEvent = Event.SEND_PKG;
-//        notifyAll();
-//    }
 
     /**
      * 通过网络层接收数据包
@@ -130,15 +111,6 @@ public abstract class TransportLayer {
     }
 
     /**
-     *
-     */
-    public synchronized void onWaitForInput() {
-        wakeUp = true;
-        currentEvent = Event.WAIT_FOR_INPUT;
-        notifyAll();
-    }
-
-    /**
      * 定时器超时事件
      */
     public synchronized void onTimeout() {
@@ -147,18 +119,27 @@ public abstract class TransportLayer {
         notifyAll();
     }
 
+    /**
+     * 触发数据输入事件
+     */
     public synchronized void onInput() {
         wakeUp = true;
         currentEvent = Event.INPUT;
         notifyAll();
     }
 
+    /**
+     * 触发三次握手完成事件
+     */
     public synchronized void onPackageSYNFIN() {
         wakeUp = true;
         currentEvent = Event.RECEIVE_PKG_SYN_FIN;
         notifyAll();
     }
 
+    /**
+     * 触发积极响应事件
+     */
     public synchronized void onPositiveAck() {
         wakeUp = true;
         currentEvent = Event.POCITIVE_ACK;
@@ -166,13 +147,35 @@ public abstract class TransportLayer {
     }
 
     /**
-     * 获取当前的状态
+     * 触发文件读取完成事件
+     */
+    public synchronized void onFileReadEnd() {
+        wakeUp = true;
+        currentEvent = Event.FILE_READ_END;
+        notifyAll();
+    }
+
+    /**
+     * 触发接收包fin事件
+     */
+    public synchronized void onPackageFIN() {
+        wakeUp = true;
+        currentEvent = Event.RECEIVE_PKG_FIN;
+        notifyAll();
+    }
+
+    /**
+     * 获取当前的状态 只有主线程来读取状态 设置状态 因此没有并发问题，不用加锁
      * @return
      */
     public State getCurrentState() {
         return currentState;
     }
 
+    /**
+     * 设置当前状态 只有主线程来读取状态 设置状态 因此没有并发问题，不用加锁
+     * @param state
+     */
     public void setCurrentState(State state) {
         currentState = state;
     }
@@ -185,17 +188,6 @@ public abstract class TransportLayer {
         return  currentEvent;
     }
 
-    public synchronized void onFileReadEnd() {
-        wakeUp = true;
-        currentEvent = Event.FILE_READ_END;
-        notifyAll();
-    }
-
-    public synchronized void onPackageFIN() {
-        wakeUp = true;
-        currentEvent = Event.RECEIVE_PKG_FIN;
-        notifyAll();
-    }
 
     public class SendTimerTask extends TimerTask {
         @Override

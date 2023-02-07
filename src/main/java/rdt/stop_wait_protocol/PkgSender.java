@@ -1,12 +1,12 @@
-package stateMachine;
+package rdt.stop_wait_protocol;
 
-import stateMachine.handler.IStateHandle;
-import stateMachine.handler.sender.*;
-import stateMachine.protocol.*;
-import stateMachine.state.Event;
-import stateMachine.state.SopExec;
-import stateMachine.state.SopProcess;
-import stateMachine.state.State;
+import rdt.stop_wait_protocol.handler.IStateHandle;
+import rdt.stop_wait_protocol.handler.sender.*;
+import rdt.stop_wait_protocol.protocol.*;
+import rdt.stop_wait_protocol.protocol.Event;
+import rdt.common.state.SopExec;
+import rdt.common.state.SopProcess;
+import rdt.stop_wait_protocol.protocol.State;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -173,6 +173,9 @@ public class PkgSender extends TransportLayer {
         }
     }
 
+    /**
+     * 唤醒input 线程
+     */
     public void wakeUpInput() {
         synchronized (inputLock) {
             inputThread.canInput = true;
@@ -180,6 +183,9 @@ public class PkgSender extends TransportLayer {
         }
     }
 
+    /**
+     * 停止Input线程
+     */
     public void stopInput() {
         synchronized (inputLock) {
             inputThread.canInput = false;
@@ -188,7 +194,7 @@ public class PkgSender extends TransportLayer {
     }
 
     public void increment() {
-        if(nextSeqToSend.get() == 0)
+        if(nextSeqToSend.get() < TransportLayer.MAX_SEQ)
             nextSeqToSend  = new AtomicInteger(1);
         else // seq number wrap around
             nextSeqToSend = new AtomicInteger(0);
@@ -298,7 +304,6 @@ public class PkgSender extends TransportLayer {
         }
     }
 
-
     public static void main(String[] args) {
 //        LossyChannel channel = new LossyChannel(SENDER_PORT, RECEIVER_PORT);
         if (args.length < 1) {
@@ -311,6 +316,10 @@ public class PkgSender extends TransportLayer {
         NormalChannel channel = new NormalChannel(SENDER_PORT, remoteHost, RECEIVER_PORT);
         PkgSender pkgSender = new PkgSender(channel);
         channel.setTransportLayer(pkgSender);
-        pkgSender.run();
+        try {
+            pkgSender.run();
+        } finally {
+            pkgSender.release();
+        }
     }
 }

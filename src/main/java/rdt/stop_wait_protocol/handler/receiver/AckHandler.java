@@ -1,9 +1,9 @@
-package stateMachine.handler.receiver;
+package rdt.stop_wait_protocol.handler.receiver;
 
-import stateMachine.PkgReceiver;
-import stateMachine.handler.IStateHandle;
-import stateMachine.protocol.Packet;
-import stateMachine.state.Event;
+import rdt.stop_wait_protocol.PkgReceiver;
+import rdt.stop_wait_protocol.handler.IStateHandle;
+import rdt.stop_wait_protocol.protocol.Packet;
+import rdt.stop_wait_protocol.protocol.Event;
 
 /**
  * @Author by wuzheng.warms

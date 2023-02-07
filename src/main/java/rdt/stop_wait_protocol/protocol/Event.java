@@ -1,4 +1,4 @@
-package stateMachine.state;
+package rdt.stop_wait_protocol.protocol;
 
 /**
  * @Author by wuzheng.warms

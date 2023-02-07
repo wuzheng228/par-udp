@@ -1,7 +1,9 @@
-package stateMachine.state;
+package rdt.common.state;
 
 import lombok.Data;
-import stateMachine.handler.IStateHandle;
+import rdt.stop_wait_protocol.handler.IStateHandle;
+import rdt.stop_wait_protocol.protocol.Event;
+import rdt.stop_wait_protocol.protocol.State;
 
 /**
  * @Author by wuzheng.warms

@@ -1,17 +1,17 @@
-package stateMachine;
+package rdt.stop_wait_protocol;
 
-import stateMachine.handler.IStateHandle;
-import stateMachine.handler.receiver.AckHandler;
-import stateMachine.handler.receiver.InitHandler;
-import stateMachine.handler.receiver.ReceiverHandler;
-import stateMachine.protocol.Channel;
-import stateMachine.protocol.NormalChannel;
-import stateMachine.protocol.Packet;
-import stateMachine.protocol.TransportLayer;
-import stateMachine.state.Event;
-import stateMachine.state.SopExec;
-import stateMachine.state.SopProcess;
-import stateMachine.state.State;
+import rdt.stop_wait_protocol.handler.IStateHandle;
+import rdt.stop_wait_protocol.handler.receiver.AckHandler;
+import rdt.stop_wait_protocol.handler.receiver.InitHandler;
+import rdt.stop_wait_protocol.handler.receiver.ReceiverHandler;
+import rdt.stop_wait_protocol.protocol.Channel;
+import rdt.stop_wait_protocol.protocol.NormalChannel;
+import rdt.stop_wait_protocol.protocol.Packet;
+import rdt.stop_wait_protocol.protocol.TransportLayer;
+import rdt.stop_wait_protocol.protocol.Event;
+import rdt.common.state.SopExec;
+import rdt.common.state.SopProcess;
+import rdt.stop_wait_protocol.protocol.State;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
